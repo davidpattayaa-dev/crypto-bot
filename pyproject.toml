@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "crypto-bot"
+version = "0.1.0"
+description = "A crypto bot that connects to the superagrigrator service."
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.31",
+    "python-dotenv>=1.0",
+]
+
+[project.scripts]
+crypto-bot = "crypto_bot.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["crypto_bot*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
