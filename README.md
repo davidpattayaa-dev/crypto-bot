@@ -42,7 +42,16 @@ Configuration is read from the environment (and from a `.env` file if present).
 ```bash
 python -m crypto_bot.cli ping              # health-check the connection
 python -m crypto_bot.cli price BTC-USD     # fetch a price from the aggregator
+python -m crypto_bot.cli discover          # probe endpoints to map the real API
 ```
+
+### Troubleshooting: "Blocked by the environment's network policy"
+
+If a command reports that the host is blocked, the request never left this
+environment — its egress allowlist doesn't include the superaggregator host.
+Add the host to the environment's **network settings** and start a fresh
+session. See https://code.claude.com/docs/en/claude-code-on-the-web. This is
+unrelated to the superaggregator service itself.
 
 ## Using it from code
 

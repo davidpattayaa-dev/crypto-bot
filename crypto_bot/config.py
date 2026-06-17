@@ -33,6 +33,8 @@ class Settings:
     base_url: str = DEFAULT_BASE_URL
     api_key: str = ""  # optional: the public instance needs no auth
     timeout: float = 10.0
+    retries: int = 2  # extra attempts on transient network errors
+    backoff: float = 0.5  # base seconds for exponential backoff between retries
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -48,9 +50,13 @@ class Settings:
         )
         api_key = os.environ.get("SUPERAGRIGRATOR_API_KEY", "").strip()
         timeout = float(os.environ.get("SUPERAGRIGRATOR_TIMEOUT", "10"))
+        retries = int(os.environ.get("SUPERAGRIGRATOR_RETRIES", "2"))
+        backoff = float(os.environ.get("SUPERAGRIGRATOR_BACKOFF", "0.5"))
 
         return cls(
             base_url=base_url.rstrip("/"),
             api_key=api_key,
             timeout=timeout,
+            retries=retries,
+            backoff=backoff,
         )

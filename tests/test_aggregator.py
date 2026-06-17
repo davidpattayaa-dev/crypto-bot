@@ -1,9 +1,14 @@
 """Tests for the superagrigrator client. Network is mocked via `responses`."""
 
 import pytest
+import requests
 import responses
 
-from crypto_bot.aggregator import SuperagrigratorClient, SuperagrigratorError
+from crypto_bot.aggregator import (
+    EgressBlockedError,
+    SuperagrigratorClient,
+    SuperagrigratorError,
+)
 from crypto_bot.config import Settings
 
 BASE_URL = "https://api.superagrigrator.test"
@@ -12,7 +17,7 @@ BASE_URL = "https://api.superagrigrator.test"
 @pytest.fixture
 def client() -> SuperagrigratorClient:
     return SuperagrigratorClient(
-        Settings(base_url=BASE_URL, api_key="test-key", timeout=5)
+        Settings(base_url=BASE_URL, api_key="test-key", timeout=5, backoff=0)
     )
 
 
@@ -66,3 +71,39 @@ def test_error_is_wrapped(client: SuperagrigratorClient):
     responses.get(f"{BASE_URL}/prices/BTC-USD", status=500)
     with pytest.raises(SuperagrigratorError):
         client.get_price("BTC-USD")
+
+
+@responses.activate
+def test_egress_block_raises_clear_error(client: SuperagrigratorClient):
+    responses.get(
+        f"{BASE_URL}/health",
+        status=403,
+        headers={"x-deny-reason": "host_not_allowed"},
+        body="Host not in allowlist",
+    )
+    with pytest.raises(EgressBlockedError):
+        client.health_check()
+
+
+@responses.activate
+def test_retries_then_succeeds(client: SuperagrigratorClient):
+    # First attempt is a transient connection error, second succeeds.
+    responses.get(f"{BASE_URL}/health", body=requests.ConnectionError("boom"))
+    responses.get(f"{BASE_URL}/health", json={"status": "ok"}, status=200)
+    assert client.health_check() is True
+    assert len(responses.calls) == 2
+
+
+@responses.activate
+def test_discover_lists_endpoints(client: SuperagrigratorClient):
+    responses.get(f"{BASE_URL}/health", json={"status": "ok"}, status=200)
+    # Register every other candidate path the client probes, as 404.
+    for path in ("/", "/healthz", "/api", "/api/health", "/chart", "/api/chart",
+                 "/prices", "/api/prices", "/candles", "/api/candles",
+                 "/symbols", "/api/symbols"):
+        responses.get(f"{BASE_URL}{path}", status=404)
+
+    rows = client.discover()
+    paths = {r["path"]: r["status"] for r in rows}
+    assert paths["/health"] == 200
+    assert paths["/chart"] == 404
