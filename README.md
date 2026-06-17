@@ -6,34 +6,34 @@ aggregator" of market data / order routing) over its HTTP API.
 The connection is fully config-driven: point the bot at any superagrigrator
 endpoint by setting two environment variables — no code changes required.
 
+The default instance is **open (no login required)**, so the bot works with
+zero configuration.
+
 ## Quick start
 
 ```bash
 # 1. Install dependencies
 pip install -r requirements.txt
 
-# 2. Configure the connection (copy the example and fill in your values)
-cp .env.example .env
-#   SUPERAGRIGRATOR_BASE_URL=https://api.superagrigrator.example
-#   SUPERAGRIGRATOR_API_KEY=your-key-here
-
-# 3. Test that the bot can reach superagrigrator
+# 2. Test that the bot can reach superaggregator (no config needed)
 python -m crypto_bot.cli ping
 ```
 
 If the connection works you'll see:
 
 ```
-✓ Connected to superagrigrator at https://api.superagrigrator.example
+✓ Connected to superaggregator at https://superaggregator.fly.dev
 ```
 
 ## Configuration
 
-| Env var                      | Required | Default | Description                              |
-| ---------------------------- | -------- | ------- | ---------------------------------------- |
-| `SUPERAGRIGRATOR_BASE_URL`   | yes      | —       | Base URL of the superagrigrator API.     |
-| `SUPERAGRIGRATOR_API_KEY`    | yes      | —       | API key used for authenticating.         |
-| `SUPERAGRIGRATOR_TIMEOUT`    | no       | `10`    | Per-request timeout in seconds.          |
+No configuration is required for the public instance. Override only if needed:
+
+| Env var                      | Required | Default                          | Description                          |
+| ---------------------------- | -------- | -------------------------------- | ------------------------------------ |
+| `SUPERAGRIGRATOR_BASE_URL`   | no       | `https://superaggregator.fly.dev`| Base URL of the superaggregator API. |
+| `SUPERAGRIGRATOR_API_KEY`    | no       | _(none)_                         | Only sent if the instance needs auth.|
+| `SUPERAGRIGRATOR_TIMEOUT`    | no       | `10`                             | Per-request timeout in seconds.      |
 
 Configuration is read from the environment (and from a `.env` file if present).
 

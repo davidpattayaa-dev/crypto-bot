@@ -21,39 +21,32 @@ class ConfigError(RuntimeError):
     """Raised when required configuration is missing."""
 
 
+# The superaggregator instance the bot talks to by default. It's an open
+# endpoint (no login required), so the bot works out of the box.
+DEFAULT_BASE_URL = "https://superaggregator.fly.dev"
+
+
 @dataclass(frozen=True)
 class Settings:
-    """Connection settings for the superagrigrator service."""
+    """Connection settings for the superaggregator service."""
 
-    base_url: str
-    api_key: str
+    base_url: str = DEFAULT_BASE_URL
+    api_key: str = ""  # optional: the public instance needs no auth
     timeout: float = 10.0
 
     @classmethod
     def from_env(cls) -> "Settings":
         """Build settings from environment variables.
 
-        Raises:
-            ConfigError: if a required variable is missing.
+        Only the base URL is needed, and it defaults to the public instance,
+        so no configuration is required for the open endpoint. An API key is
+        optional and only sent if provided.
         """
-        base_url = os.environ.get("SUPERAGRIGRATOR_BASE_URL", "").strip()
+        base_url = (
+            os.environ.get("SUPERAGRIGRATOR_BASE_URL", "").strip()
+            or DEFAULT_BASE_URL
+        )
         api_key = os.environ.get("SUPERAGRIGRATOR_API_KEY", "").strip()
-
-        missing = [
-            name
-            for name, value in (
-                ("SUPERAGRIGRATOR_BASE_URL", base_url),
-                ("SUPERAGRIGRATOR_API_KEY", api_key),
-            )
-            if not value
-        ]
-        if missing:
-            raise ConfigError(
-                "Missing required environment variable(s): "
-                + ", ".join(missing)
-                + ". Copy .env.example to .env and fill in your values."
-            )
-
         timeout = float(os.environ.get("SUPERAGRIGRATOR_TIMEOUT", "10"))
 
         return cls(

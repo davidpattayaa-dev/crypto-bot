@@ -26,11 +26,13 @@ class SuperagrigratorClient:
         self._session = session or requests.Session()
         self._session.headers.update(
             {
-                "Authorization": f"Bearer {settings.api_key}",
                 "Accept": "application/json",
                 "User-Agent": "crypto-bot/0.1",
             }
         )
+        # The public instance needs no auth; only send a key if one is set.
+        if settings.api_key:
+            self._session.headers["Authorization"] = f"Bearer {settings.api_key}"
 
     # -- internals --------------------------------------------------------
 

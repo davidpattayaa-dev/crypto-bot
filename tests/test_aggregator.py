@@ -29,10 +29,19 @@ def test_health_check_failure(client: SuperagrigratorClient):
 
 
 @responses.activate
-def test_sends_auth_header(client: SuperagrigratorClient):
+def test_sends_auth_header_when_key_set(client: SuperagrigratorClient):
     responses.get(f"{BASE_URL}/health", json={}, status=200)
     client.health_check()
     assert responses.calls[0].request.headers["Authorization"] == "Bearer test-key"
+
+
+@responses.activate
+def test_no_auth_header_when_key_absent():
+    # Open endpoint: no api_key -> no Authorization header sent.
+    open_client = SuperagrigratorClient(Settings(base_url=BASE_URL))
+    responses.get(f"{BASE_URL}/health", json={}, status=200)
+    open_client.health_check()
+    assert "Authorization" not in responses.calls[0].request.headers
 
 
 @responses.activate
